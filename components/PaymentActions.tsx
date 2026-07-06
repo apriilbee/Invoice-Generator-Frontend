@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 
-export default function PaymentActions({ messageId }: { messageId: string }) {
+export default function PaymentActions({
+  messageId,
+  className = "card__actions",
+}: {
+  messageId: string;
+  className?: string;
+}) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +61,7 @@ export default function PaymentActions({ messageId }: { messageId: string }) {
 
   return (
     <>
-      <div className="card__actions">
+      <div className={className}>
         <a
           className="btn btn--ghost"
           href={`/api/pdf/${messageId}`}

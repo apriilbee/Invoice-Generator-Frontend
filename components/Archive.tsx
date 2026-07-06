@@ -117,9 +117,11 @@ export default function Archive() {
                 <span className="modal__val">{selected.payment_date}</span>
               </div>
             </div>
-            <div className="modal__actions">
-              <PaymentActions key={selected.message_id} messageId={selected.message_id} />
-            </div>
+            <PaymentActions
+              key={selected.message_id}
+              messageId={selected.message_id}
+              className="modal__actions"
+            />
           </div>
         </div>
       )}
