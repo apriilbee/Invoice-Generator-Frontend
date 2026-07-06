@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import PaymentActions from "./PaymentActions";
 import type { Payment } from "@/lib/api";
 
 export default function Archive() {
+  const router = useRouter();
   const [items, setItems] = useState<Payment[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -15,9 +17,15 @@ export default function Archive() {
     let cancelled = false;
     setLoading(true);
     fetch(`/api/payments?page=${page}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          return null;
+        }
+        return res.json();
+      })
       .then((data) => {
-        if (cancelled) return;
+        if (cancelled || !data) return;
         setItems(data.items ?? []);
         setTotalPages(data.total_pages ?? 1);
       })
@@ -27,7 +35,7 @@ export default function Archive() {
     return () => {
       cancelled = true;
     };
-  }, [page]);
+  }, [page, router]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {

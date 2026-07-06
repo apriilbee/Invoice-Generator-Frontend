@@ -26,9 +26,28 @@ export default function PaymentActions({ messageId }: { messageId: string }) {
     }
   }
 
-  function handleDownloadClick() {
+  async function handleDownload() {
     setDownloading(true);
-    setTimeout(() => setDownloading(false), 4000);
+    try {
+      const res = await fetch(`/api/pdf/${messageId}?download=1`);
+      if (!res.ok) throw new Error("Download failed");
+      const blob = await res.blob();
+      const disposition = res.headers.get("content-disposition");
+      const filename = disposition?.match(/filename="?([^"]+)"?/)?.[1] ?? `invoice-${messageId}.pdf`;
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Download failed");
+    } finally {
+      setDownloading(false);
+    }
   }
 
   const sendDisabled = sending || sent;
@@ -55,12 +74,11 @@ export default function PaymentActions({ messageId }: { messageId: string }) {
           </svg>
           View PDF
         </a>
-        <a
+        <button
+          type="button"
           className="btn btn--primary"
-          href={`/api/pdf/${messageId}?download=1`}
-          download
-          onClick={handleDownloadClick}
-          style={downloading ? { pointerEvents: "none" } : undefined}
+          onClick={handleDownload}
+          disabled={downloading}
         >
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
             <path
@@ -72,7 +90,7 @@ export default function PaymentActions({ messageId }: { messageId: string }) {
             />
           </svg>
           <span className="btn__label">{downloading ? "Generating…" : "Download PDF"}</span>
-        </a>
+        </button>
         <button className="btn btn--ghost" disabled={sendDisabled} onClick={handleSend}>
           {!sendDisabled && (
             <svg
